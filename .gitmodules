@@ -1,3 +1,6 @@
 [submodule "数分 II/Solution"]
 	path = 数分 II/Solution
 	url = git@github.com:Kingsley-Yoimiya/-mathematical-analysis-Homework-II-2024-Spring.git
+[submodule "软件工程 实验班"]
+	path = 软件工程 实验班
+	url = git@github.com:Kingsley-Yoimiya/software-engineering-hw.git
