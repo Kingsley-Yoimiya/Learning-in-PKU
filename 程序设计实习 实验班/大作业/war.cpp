@@ -112,7 +112,6 @@ protected:
         }
         int atk() { return tp == 0 ? attack : 0; } // only sword atk
         string info() { 
-            //cerr << "INFO : " << tp << " " <<endl;
             if(tp == -1) return "no";
             else if(tp == 0) return "sword(" + to_string(attack) + ")";
             else if(tp == 1) return "arrow(" + to_string(attack) + ")";
@@ -139,12 +138,10 @@ public:
     //void tryArrow(warrior self, warrior &enemy);
     weaponSystem() { wp[0] = wp[1] = wp[2] = weapon(); }
     void getWeapon(int tp, int attack) { // inits weapon
-        //if(wp[tp].tp != -1) return;
         if(tp == 1) tp = 2; else if(tp == 2) tp = 1;
         if(tp == 0) wp[tp] = sword(attack);
         if(tp == 1) wp[tp] = arrow();
         if(tp == 2) wp[tp] = bomb();
-        //cerr << "!TTTT" << tp << " " << wp[tp].checkStatus() << endl;
     }
     void kill_getWeapon(int t, weapon x) {
         if(!wp[t].checkStatus()) wp[t] = x;
@@ -223,7 +220,6 @@ public:
         if(takeStep % 2 == 0) element -= 9, attack += 20;
         if(element <= 0) element = 1; 
     }
-    //bool checkLoyalty() { return true; }
     bool exist() { return flag != -1; }
     bool alive() { return element > 0; }
     void addElement() { element += 8; }
@@ -261,7 +257,6 @@ public:
         eventRecoder.takePlace(out.str(), 10, flag);
     }
     void beAttacked(int val, bool isArrow) {
-		//cerr << getTime() << " " << getFullname() << " being checked by harm " << val << " " << isArrow << endl;
         element -= val;
         if(element <= 0 && !isArrow) {
             stringstream out;
@@ -279,7 +274,6 @@ public:
         if(!enemy.alive()) 
             out << " and killed " << enemy.getFullname();
         eventRecoder.takePlace(out.str(), 4, getflag());
-		//cerr << "Arrow GOAL: " << enemy.getFullname() << " " << enemy.getelement() << endl;
         weapons.useArrow();
     }
     int attackValue() {
@@ -292,7 +286,6 @@ public:
     bool evaluate(int harm, warrior &enemy) {
         if(harm >= element) {
             if(weapons.haveBomb()) {
-                // do something...
                 stringstream out;
                 out << getTime() << " " << getFullname() << " used a bomb and killed " << enemy.getFullname();
                 eventRecoder.takePlace(out.str(), 5, flag);
@@ -443,8 +436,6 @@ void tryFight(warrior &a, warrior &b) {
 }
 
 void fightIt(warrior &a, warrior &b) {
-	//cerr << getTime() << " FIGHTING : " << a.getFullname() << " " << b.getFullname() << endl;
-	//assert(a.alive());
     b.beAttacked(a.attackValue(), 0);
     stringstream out;
     out << getTime() << " " << a.getFullname() << " " << "attacked " << b.getFullname() << 
@@ -480,8 +471,6 @@ int ele[2][30], starter[30];
 
 // ----------------------
 int main() {
-    //freopen("data.in", "r", stdin);
-    //freopen("war.out", "w", stdout);
     int testcases;
     cin >> testcases;
     rep(tcase, 1, testcases) {
@@ -563,22 +552,10 @@ int main() {
                     continue;
                 }
                 rep(fl, 0, 1) if(wCity[fl][i].exist()) {
-                    //restElements[fl] += cities[i].restElements;
                     wCity[fl][i].earnElements(cities[i].restElements); 
                     cities[i].restElements = 0;
                 }
             }
-			auto out = [&]() {
-				cerr << "INFO:------------------" << " " << getTime() << endl;
-			rep(fl, 0, 1) {
-				rep(i, 1, n) {
-					auto t = wCity[fl][i];
-					cerr << t.getFullname() << " " << t.getelement() << " " << t.alive() << endl;
-				}
-			}
-			cerr << "-----------------------" << endl;
-			};
-			//out();
 			
             // 6. Shoot Arrow
             curTime.se = 35;
@@ -586,10 +563,7 @@ int main() {
                 curCity = i;
                 if(wCity[fl][i].exist() && wCity[fl ^ 1][nxtCity(fl, i)].exist() && nxtCity(fl, i) != 0 && nxtCity(fl, i) != n + 1)
                     wCity[fl][i].tryArrow(wCity[fl ^ 1][nxtCity(fl, i)]);
-				//	cerr << "RES: " <<  wCity[fl ^ 1][nxtCity(fl, i)].getFullname() << " " <<  wCity[fl ^ 1][nxtCity(fl, i)].alive() << endl;
             }
-
-			//out();
 			
 			rep(i, 1, n) if(wCity[0][i].alive() && wCity[1][i].alive()) canFight[i] = true; else canFight[i] = false;
             // 7. Evaluate Bomb
@@ -603,8 +577,6 @@ int main() {
 			rep(i, 1, n) if(wCity[0][i].alive() && wCity[1][i].alive()) canFight[i] = true; else canFight[i] = false;
 			rep(i, 1, n) realFight[i] = false;
 
-			//out();
-			
             // 8. Fight
 			rep(fl, 0, 1) rep(i, 0, n + 1) ele[fl][i] = wCity[fl][i].getelement();
             curTime.se = 40;
@@ -618,20 +590,15 @@ int main() {
 				starter[i] = first;
                 fightIt(wCity[first][i], wCity[first ^ 1][i]);
             }
-
-			//out();
 			
             // 9. Scan the Area
             curTime.se = 40;
-
-			//cerr << getTime() << endl;
 
 			rep(i, 1, n) if(willFight[i]) {
                 curCity = i;
                 // Change Flag
                 rep(fl, 0, 1)
                     if(wCity[fl][i].alive() && !wCity[fl ^ 1][i].alive()) {
-						//cerr << "city " << i << " " << "win " << fl << endl;
                         if(cities[i].lstWinner == fl) {
                             if(cities[i].currentFlag != fl) {
                                 stringstream out; 
@@ -644,10 +611,8 @@ int main() {
                             cities[i].lstWinner = fl;
                         }
                     } 
-                //if(!wCity[0][i].alive() && !wCity[1][i].alive())
-                //    cities[i].lstWinner = -1, cerr << "city " << i << " break" <<endl;
 				if(wCity[0][i].alive() && wCity[1][i].alive())
-                    cities[i].lstWinner = -1;//, cerr << "city " << i << " break" << endl;
+                    cities[i].lstWinner = -1;
 				
                 // ---------------
 
@@ -676,12 +641,8 @@ int main() {
             // get elements
             rep(i, 1, n) if(willFight[i]) {
 				curCity = i;
-				//cerr << tcase << " " << getTime() << " " << i << "CHECKING" << endl;
                 if(wCity[0][i].exist() && wCity[1][i].exist()) continue;
-				
-				//cerr << getTime() << " " << i << "CHECKed" << " " << wCity[1][i].getFullname() << " " << wCity[1][i].getelement() << " " << wCity[1][i].exist() << endl;
                 rep(fl, 0, 1) if(wCity[fl][i].exist()) {
-					//cerr << "fl " << i << " get " << endl;
                     wCity[fl][i].earnElements(cities[i].restElements);
                     cities[i].restElements = 0;
                 }
