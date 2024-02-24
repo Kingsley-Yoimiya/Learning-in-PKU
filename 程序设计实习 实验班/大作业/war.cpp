@@ -98,7 +98,7 @@ int restElements[2], haveEnvader[2];
 // ----------------------
 
 class weaponSystem {
-private:
+protected:
     class weapon {
     public:
         int tp, attack;
@@ -135,7 +135,7 @@ private:
     };
 public:
     //void tryArrow(warrior self, warrior &enemy);
-    weaponSystem() { }
+    weaponSystem() { wp[0] = wp[1] = wp[2] = weapon(); }
     void getWeapon(int tp, int attack) { // inits weapon
         //if(wp[tp].tp != -1) return;
         if(tp == 1) tp = 2; else if(tp == 2) tp = 1;
@@ -144,27 +144,27 @@ public:
         if(tp == 2) wp[tp] = bomb();
         //cerr << "!TTTT" << tp << " " << wp[tp].checkStatus() << endl;
     }
-    void kill_getWeapon(int t, weapon &x) {
-        if(!wp[t] -> checkStatus()) *wp[t] = x;
+    void kill_getWeapon(int t, weapon x) {
+        if(!wp[t].checkStatus()) wp[t] = x;
     }
-    weapon * trans(int x) { return wp[x]; }
+    weapon trans(int x) { return wp[x]; }
     void kill_getWeapons(weaponSystem t) {
-        rep(i, 0, 2) kill_getWeapon(i, *t.trans(i));
+        rep(i, 0, 2) kill_getWeapon(i, t.trans(i));
     }
     void checkWeapon() {
         for(int i = 0; i < 3; i++) {
-            if(wp[i] -> tp == -1) continue;
-            if(!wp[i] -> checkStatus()) wp[i] = new weapon();
+            if(wp[i].tp == -1) continue;
+            if(!wp[i].checkStatus()) wp[i] = weapon();
         }
     }
     
-    int getSword() { return wp[0] -> atk(); }
-    bool haveBomb() { return wp[2] -> checkStatus(); }
+    int getSword() { return wp[0].atk(); }
+    bool haveBomb() { return wp[2].checkStatus(); }
     string info() {
         vector < string > ret;
-        if(wp[1] -> checkStatus()) ret.eb(wp[1] -> info());
-        if(wp[2] -> checkStatus()) ret.eb(wp[2] -> info());
-        if(wp[0] -> checkStatus()) ret.eb(wp[0] -> info());
+        if(wp[1].checkStatus()) ret.eb(wp[1].info());
+        if(wp[2].checkStatus()) ret.eb(wp[2].info());
+        if(wp[0].checkStatus()) ret.eb(wp[0].info());
         string ans;
         if(ret.size() == 0) ans = "no weapon";
         else {
@@ -179,7 +179,7 @@ public:
     void useArrow() { wp[2].fight(); }    
     void fightSword() { wp[0].fight(); }
 private:
-    weapon *wp[3];
+    weapon wp[3];
 };
 
 // ----------------------
@@ -456,7 +456,7 @@ warrior pos[30], wCity[2][30], tCity[2][30];
 bool willFight[30];
 
 void resetAll() {
-    curTime = pii(0, 0);
+    curTime = {0, 0};
     curCity = 0;
     curID[0] = curID[1] = 0;
     rep(i, 0, 22) pos[i] = warrior();
@@ -606,13 +606,11 @@ int main() {
                 // afterWar ...
                 rep(fl, 0, 1) if(wCity[fl][i].alive()) {
                     wCity[fl][i].cheers(!wCity[fl ^ 1][i].alive());
-                    wCity[fl][i].cheerSword();
                 } 
                 rep(fl, 0, 1) if(wCity[fl][i].alive() && !wCity[fl ^ 1][i].alive()) {
                     if(wCity[fl][i].getname() == "wolf") 
                         wCity[fl][i].scanBody(wCity[fl ^ 1][i].giveWeapon());
                 } // cheers and get weapon
-                
             }
             rep(fl, 1, n) rep(i, 1, n) if(!wCity[fl][i].alive()) wCity[fl][i] = warrior();
 
@@ -627,7 +625,6 @@ int main() {
             }
             // get elements
             rep(i, 1, n) if(willFight[i]) {
-                curCity = i;
                 if(wCity[0][i].exist() && wCity[1][i].exist()) continue;
                 rep(fl, 0, 1) if(wCity[fl][i].exist()) {
                     wCity[fl][i].earnElements(cities[i].restElements);
