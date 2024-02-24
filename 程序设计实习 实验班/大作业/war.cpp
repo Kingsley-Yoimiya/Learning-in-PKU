@@ -101,51 +101,48 @@ class weaponSystem {
 private:
     class weapon {
     public:
-        int tp;
+        int tp, attack;
         weapon() { tp = -1; }
-        virtual bool checkStatus() { return false; }
-        void fight() {}
-        int atk() { return 0; }
-        string info() { return "no"; }
+        bool checkStatus() { return attack > 0; }
+        void fight() {
+            if(tp == 0) attack = attack * 0.8;
+            else if(tp == 1) attack--;
+        }
+        int atk() { return tp == 0 ? attack : R; }
+        string info() { 
+            //cerr << "INFO : " << tp << " " <<endl;
+            if(tp == -1) return "no";
+            else if(tp == 0) return "sword(" + to_string(attack) + ")";
+            else if(tp == 1) return "arrow(" + to_string(attack) + ")";
+            else return "bomb";
+        }
     };
 
     class sword : public weapon {
     public :
-        int attack;
-        sword(int attack_) : attack(attack_ * 0.2) { tp = 0; }
-        void fight() { attack *= 0.8; }
-        bool checkStatus() override { return attack > 0; }
-        int atk() { return attack; }
+        sword(int attack_) { attack = attack_ * 0.2; tp = 0; }
         string info() { return "sword(" + to_string(attack) + ")"; }
     };
 
     class arrow : public weapon {
     public:
-        int usdtime;
-        arrow() : usdtime(3) { tp = 1; cerr << "!ARROW" << " " << usdtime << " " << checkStatus() << endl; }
-        bool checkStatus() override { return usdtime > 0; }
-        void fight() { usdtime--; }
-        string info() { return "arrow(" + to_string(usdtime) + ")"; }
+        arrow() { attack = 3, tp = 1; }
     };
 
     class bomb : public weapon {
     public:
-        bool status;
-        bomb() : status(true) { tp = 2; }
-        bool checkStatus() override { return true; }
-        string info() { return "bomb"; }
+        bomb() { tp = 2; attack = 1; }
     };
 public:
     //void tryArrow(warrior self, warrior &enemy);
     weaponSystem() { }
     void getWeapon(int tp, int attack) { // inits weapon
         //if(wp[tp].tp != -1) return;
-        if(tp == 2) tp = 1; else if(tp == 1) tp = 2;
-        cerr << "!!!!" << tp << " " << attack << endl;
-        if(tp == 0) wp[tp] = new sword(attack);
-        if(tp == 1) wp[tp] = new arrow();
-        if(tp == 2) wp[tp] = new bomb();
-        cerr << "!CHECK" << wp[tp] -> checkStatus() << endl;
+        if(tp == 1) tp = 2; else if(tp == 2) tp = 1;
+        if(tp == 0) wp[tp] = sword(attack);
+        if(tp == 1) wp[tp] = arrow();
+        if(tp == 2) wp[tp] = bomb();
+        //cerr << "!TTTT" << tp << " " << wp[tp].checkStatus() << endl;
     }
     void kill_getWeapon(int t, weapon &x) {
         if(!wp[t] -> checkStatus()) *wp[t] = x;
@@ -172,15 +169,15 @@ public:
         if(ret.size() == 0) ans = "no weapon";
         else {
             bool fl = 0;
-            for(auto v : ans) {
+            for(auto v : ret) {
                 if(fl) ans += ",";
                 fl = 1; ans += v;
             } 
         } return ans;
     }
-    bool checkArrow() { return wp[2] -> checkStatus();}
-    void useArrow() { wp[2] -> fight(); }    
-    void fightSword() { wp[0] -> fight(); }
+    bool checkArrow() { return wp[2].checkStatus();}
+    void useArrow() { wp[2].fight(); }    
+    void fightSword() { wp[0].fight(); }
 private:
     weapon *wp[3];
 };
@@ -192,11 +189,14 @@ int atkDragon, atkNinja, atkIceman, atkLion, atkWolf;
 
 class warrior {
 protected:
-    int flag, element, attack, id;
+    int flag, element, attack, id, taksStep;
+    int loyalty;
+    int takeStep;
     string name;
     weaponSystem weapons;
-    
-    void setupWeapon(){};
+    double morale;
+
+    //void setupWeapon(){};
     void warriorInit(string info = "") {
         stringstream out;
         out << getTime() << " " << getFullname() <<  " born";
@@ -213,8 +213,14 @@ public:
     string getname() { return name; }
     string getFullname() { return getFlag(flag) + " " + name + " " + to_string(id); }
     string getStatus() { return to_string(element) + " elements and force " + to_string(attack); }
-    void walk() {}
-    bool checkLoyalty() { return true; }
+    
+    void walk() {
+        if(name != "iceman") return;
+        takeStep++;
+        if(takeStep % 2 == 0) element -= 9, attack += 20;
+        if(element <= 0) element = 1; 
+    }
+    //bool checkLoyalty() { return true; }
     bool exist() { return flag != -1; }
     bool alive() { return element >= 0; }
     void addElement() { element += 8; }
@@ -289,13 +295,28 @@ public:
             } return false;
         } return true;
     }
-    void cheers(bool win) {}
+
+    void moraleUp(bool win) { if(win) morale += 0.2; else morale -= 0.2; }
+    void cheerUp() { 
+        if(morale > 0.8) {
+            stringstream out;
+            out << getTime() << " " << getFullname() << " yelled in city " << curCity;
+            eventRecoder.takePlace(out.str(), 9, flag);
+        }
+    }
+
+    bool checkLoyalty() { if(name != "lion") return true; return loyalty > 0; }
+    void loyaltyDown() { loyalty -= K; }
+    void cheers_lions(bool win) { if(!win) loyaltyDown(); }
+    void cheers(bool win) {
+        if(name == "dragon") { moraleUp(win); cheerUp(); }
+        if(name == "lion") { cheers_lions(win); }
+    }
     void cheerSword() { weapons.fightSword(); }
 };
 
 class dragon : public warrior {
 private:
-    double morale;
     void setupWeapon() {
         weapons.getWeapon(id % 3, attack);
     }
@@ -308,19 +329,10 @@ public:
         name = "dragon";
         morale = 1. * restElements[flag] / element;
         stringstream out;
-        out << endl << "Its morale is " << setprecision(2) << morale;
+        out << endl << "Its morale is " << fixed << setprecision(2) << morale;
         warriorInit(out.str());
         setupWeapon();
     }
-    void moraleUp(bool win) { if(win) morale += 0.2; else morale -= 0.2; }
-    void cheerUp() { 
-        if(morale > 0.8) {
-            stringstream out;
-            out << getTime() << " " << getFullname() << " yelled in city " << curCity;
-            eventRecoder.takePlace(out.str(), 9, flag);
-        }
-    }
-    void cheers(bool win) { moraleUp(win); cheerUp(); }
 };
 
 class ninja :  public warrior {
@@ -343,16 +355,10 @@ public:
 
 class iceman : public warrior {
 private:
-    int takeStep;
     void setupWeapon() {
         weapons.getWeapon(id % 3, attack);
     }
 public:
-    void walk() {
-        takeStep++;
-        if(takeStep % 2 == 0) element -= 9, attack += 20;
-        if(element <= 0) element = 1; 
-    }
     iceman(int fl, int tid) {
         flag = fl;
         id = tid;
@@ -367,7 +373,6 @@ public:
 
 class lion :   public warrior {
 private:
-    int loyalty;
     // sorry, no weapon.
 public:
     lion(int fl, int tid) {
@@ -380,11 +385,8 @@ public:
         stringstream out;
         out << endl << "Its loyalty is " << loyalty;
         warriorInit(out.str());
-        setupWeapon();
+        //setupWeapon();
     }
-    bool checkLoyalty() { return loyalty > 0; }
-    void loyaltyDown() { loyalty -= K; }
-    void cheers(bool win) { if(!win) loyaltyDown(); }
 };
 
 class wolf :   public warrior {
@@ -397,7 +399,7 @@ public:
         attack = atkWolf;
         name = "wolf";
         warriorInit();
-        setupWeapon();
+        //setupWeapon();
     }
 };
 
@@ -450,13 +452,14 @@ void fightIt(warrior &a, warrior &b) {
     }
 }
 
-warrior wCity[2][30], tCity[2][30];
+warrior pos[30], wCity[2][30], tCity[2][30];
 bool willFight[30];
 
 void resetAll() {
     curTime = pii(0, 0);
     curCity = 0;
     curID[0] = curID[1] = 0;
+    rep(i, 0, 22) pos[i] = warrior();
     restElements[0] = restElements[1] = m;
     haveEnvader[0] = haveEnvader[1] = 0;
     eventRecoder = _eventRecoder();
@@ -467,6 +470,8 @@ void resetAll() {
 
 // ----------------------
 int main() {
+    freopen("data.in", "r", stdin);
+    freopen("war.out", "w", stdout);
     int testcases;
     cin >> testcases;
     rep(tcase, 1, testcases) {
@@ -507,13 +512,18 @@ int main() {
                 wCity[fl][i].reach(nxtCity(fl, i));
                 tCity[fl][nxtCity(fl, i)] = wCity[fl][i];
             }
-            if(tCity[0][n + 1].exist()) haveEnvader[1]++;//, tCity[0][n + 1] = warrior();
-            if(tCity[1][0].exist()) haveEnvader[0]++;//, tCity[1][0] = warrior();
+            if(tCity[0][n + 1].exist()) haveEnvader[1]++, pos[n + 1] = tCity[0][n + 1], tCity[0][n + 1] = warrior();
+            if(tCity[1][0].exist()) haveEnvader[0]++, pos[0] = tCity[1][0], tCity[1][0] = warrior();
             rep(fl, 0, 1) rep(i, 0, n + 1) wCity[fl][i] = tCity[fl][i];
 
             // -------------------
             // check Envader
             bool endOfGame = 0;
+            if(haveEnvader[0] >= 2 || haveEnvader[1] >= 2) {
+                
+                eventRecoder.outputall(); 
+                eventRecoder = _eventRecoder();
+            }
             if(haveEnvader[0] >= 2) {
                 cout << getTime() << " red headquarter was taken" << endl;
                 endOfGame = 1;
@@ -522,7 +532,9 @@ int main() {
                 cout << getTime() << " blue headquarter was taken" << endl;
                 endOfGame = 1;
             }
-            if(endOfGame) break;
+            if(endOfGame){
+                break;
+            }
             // -------------------
 
             // 4. produce elements
@@ -539,7 +551,7 @@ int main() {
                 }
                 rep(fl, 0, 1) if(wCity[fl][i].exist()) {
                     //restElements[fl] += cities[i].restElements;
-                    wCity[fl][i].earnElements(cities[i].restElements); // included.
+                     wCity[fl][i].earnElements(cities[i].restElements); 
                     cities[i].restElements = 0;
                 }
             }
@@ -633,10 +645,15 @@ int main() {
             
             // 11. Report all weapons
             curTime.se = 55;
-            rep(fl, 0, 1) rep(i, 0, n + 1) if(wCity[fl][i].exist()) {
-                curCity = i;
-                cout << getTime() << " " << wCity[fl][i].getFullname() << " has " << wCity[fl][i].weapon_info() << endl;
-            }  
+            auto report = [&](warrior t) {
+                if(t.exist()) {
+                    cout << getTime() << " " << t.getFullname() << " has " << t.weapon_info() << endl;
+                }
+            };
+            rep(i, 1, n) report(wCity[0][i]);
+            report(pos[n + 1]);
+            report(pos[0]);
+            rep(i, 1, n) report(wCity[1][i]);
         }
     }
     return 0;
