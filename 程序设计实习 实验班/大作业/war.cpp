@@ -1,6 +1,7 @@
 // -----------------------------
 // by yinjinrun 2300012929
 // create date: 2024/2/23 16:12
+// finish date: 2024/2/24 22:41
 // -----------------------------
 
 #define fi first
@@ -260,7 +261,7 @@ public:
         eventRecoder.takePlace(out.str(), 10, flag);
     }
     void beAttacked(int val, bool isArrow) {
-		cerr << getTime() << " " << getFullname() << " being checked by harm " << val << " " << isArrow << endl;
+		//cerr << getTime() << " " << getFullname() << " being checked by harm " << val << " " << isArrow << endl;
         element -= val;
         if(element <= 0 && !isArrow) {
             stringstream out;
@@ -278,7 +279,7 @@ public:
         if(!enemy.alive()) 
             out << " and killed " << enemy.getFullname();
         eventRecoder.takePlace(out.str(), 4, getflag());
-		cerr << "Arrow GOAL: " << enemy.getFullname() << " " << enemy.getelement() << endl;
+		//cerr << "Arrow GOAL: " << enemy.getFullname() << " " << enemy.getelement() << endl;
         weapons.useArrow();
     }
     int attackValue() {
@@ -442,7 +443,7 @@ void tryFight(warrior &a, warrior &b) {
 }
 
 void fightIt(warrior &a, warrior &b) {
-	cerr << getTime() << " FIGHTING : " << a.getFullname() << " " << b.getFullname() << endl;
+	//cerr << getTime() << " FIGHTING : " << a.getFullname() << " " << b.getFullname() << endl;
 	//assert(a.alive());
     b.beAttacked(a.attackValue(), 0);
     stringstream out;
@@ -479,8 +480,8 @@ int ele[2][30], starter[30];
 
 // ----------------------
 int main() {
-    freopen("data.in", "r", stdin);
-    freopen("war.out", "w", stdout);
+    //freopen("data.in", "r", stdin);
+    //freopen("war.out", "w", stdout);
     int testcases;
     cin >> testcases;
     rep(tcase, 1, testcases) {
@@ -584,8 +585,8 @@ int main() {
             rep(fl, 0, 1) rep(i, 1, n) {
                 curCity = i;
                 if(wCity[fl][i].exist() && wCity[fl ^ 1][nxtCity(fl, i)].exist() && nxtCity(fl, i) != 0 && nxtCity(fl, i) != n + 1)
-                    wCity[fl][i].tryArrow(wCity[fl ^ 1][nxtCity(fl, i)]),
-						cerr << "RES: " <<  wCity[fl ^ 1][nxtCity(fl, i)].getFullname() << " " <<  wCity[fl ^ 1][nxtCity(fl, i)].alive() << endl;
+                    wCity[fl][i].tryArrow(wCity[fl ^ 1][nxtCity(fl, i)]);
+				//	cerr << "RES: " <<  wCity[fl ^ 1][nxtCity(fl, i)].getFullname() << " " <<  wCity[fl ^ 1][nxtCity(fl, i)].alive() << endl;
             }
 
 			//out();
@@ -630,7 +631,7 @@ int main() {
                 // Change Flag
                 rep(fl, 0, 1)
                     if(wCity[fl][i].alive() && !wCity[fl ^ 1][i].alive()) {
-						cerr << "city " << i << " " << "win " << fl << endl;
+						//cerr << "city " << i << " " << "win " << fl << endl;
                         if(cities[i].lstWinner == fl) {
                             if(cities[i].currentFlag != fl) {
                                 stringstream out; 
@@ -646,7 +647,7 @@ int main() {
                 //if(!wCity[0][i].alive() && !wCity[1][i].alive())
                 //    cities[i].lstWinner = -1, cerr << "city " << i << " break" <<endl;
 				if(wCity[0][i].alive() && wCity[1][i].alive())
-                    cities[i].lstWinner = -1, cerr << "city " << i << " break" << endl;
+                    cities[i].lstWinner = -1;//, cerr << "city " << i << " break" << endl;
 				
                 // ---------------
 
