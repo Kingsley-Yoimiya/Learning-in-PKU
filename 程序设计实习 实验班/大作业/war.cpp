@@ -175,8 +175,8 @@ public:
             } 
         } return ans;
     }
-    bool checkArrow() { return wp[2].checkStatus();}
-    void useArrow() { wp[2].fight(); }    
+    bool checkArrow() { return wp[1].checkStatus();}
+    void useArrow() { wp[1].fight(); }    
     void fightSword() { wp[0].fight(); }
 private:
     weapon wp[3];
@@ -222,7 +222,7 @@ public:
     }
     //bool checkLoyalty() { return true; }
     bool exist() { return flag != -1; }
-    bool alive() { return element >= 0; }
+    bool alive() { return element > 0; }
     void addElement() { element += 8; }
     weaponSystem giveWeapon() {
         assert(!alive());
@@ -259,7 +259,7 @@ public:
     }
     void beAttacked(int val, bool isArrow) {
         element -= val;
-        if(element < 0 && !isArrow) {
+        if(element <= 0 && !isArrow) {
             stringstream out;
             out << getTime() << " " << getFullname() << " was killed in city " << curCity;
             eventRecoder.takePlace(out.str(), 8, flag);
@@ -440,12 +440,12 @@ void tryFight(warrior &a, warrior &b) {
 void fightIt(warrior &a, warrior &b) {
     b.beAttacked(a.attackValue(), 0);
     stringstream out;
-    out << getTime() << " " << a.getFullname() << " " << "attacked" << b.getFullname() << 
+    out << getTime() << " " << a.getFullname() << " " << "attacked " << b.getFullname() << 
     " in city " << curCity << " with " << a.getStatus();
     eventRecoder.takePlace(out.str(), 6, a.getflag());
     if(b.alive()) {
         stringstream out1;
-        out1 << getTime() << " " << b.getFullname() << " " << "fought back against" << a.getFullname() << " in city " << curCity;
+        out1 << getTime() << " " << b.getFullname() << " " << "fought back against " << a.getFullname() << " in city " << curCity;
         eventRecoder.takePlace(out1.str(), 7, b.getflag());
 
         a.beAttacked(b.fightBackValue(), 0);
@@ -560,8 +560,8 @@ int main() {
             curTime.se = 35;
             rep(fl, 0, 1) rep(i, 1, n) {
                 curCity = i;
-                if(wCity[fl][i].exist() && wCity[fl][nxtCity(fl, i)].exist())
-                    wCity[fl][i].tryArrow(wCity[fl][nxtCity(fl, i)]);
+                if(wCity[fl][i].exist() && wCity[fl ^ 1][nxtCity(fl, i)].exist())
+                    wCity[fl][i].tryArrow(wCity[fl ^ 1][nxtCity(fl, i)]);
             }
 
             // 7. Evaluate Bomb
