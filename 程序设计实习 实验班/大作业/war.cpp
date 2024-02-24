@@ -260,6 +260,7 @@ public:
         eventRecoder.takePlace(out.str(), 10, flag);
     }
     void beAttacked(int val, bool isArrow) {
+		cerr << getTime() << " " << getFullname() << " being checked by harm " << val << " " << isArrow << endl;
         element -= val;
         if(element <= 0 && !isArrow) {
             stringstream out;
@@ -277,6 +278,7 @@ public:
         if(!enemy.alive()) 
             out << " and killed " << enemy.getFullname();
         eventRecoder.takePlace(out.str(), 4, getflag());
+		cerr << "Arrow GOAL: " << enemy.getFullname() << " " << enemy.getelement() << endl;
         weapons.useArrow();
     }
     int attackValue() {
@@ -440,6 +442,8 @@ void tryFight(warrior &a, warrior &b) {
 }
 
 void fightIt(warrior &a, warrior &b) {
+	cerr << getTime() << " FIGHTING : " << a.getFullname() << " " << b.getFullname() << endl;
+	//assert(a.alive());
     b.beAttacked(a.attackValue(), 0);
     stringstream out;
     out << getTime() << " " << a.getFullname() << " " << "attacked " << b.getFullname() << 
@@ -502,7 +506,7 @@ int main() {
                     curCity = i;
                     if(!wCity[fl][i].checkLoyalty()) {
                         stringstream out;
-                        out << getTime() << " " << getFlag(fl) << " lion " << i << " ran away";
+                        out << getTime() << " " << wCity[fl][i].getFullname() <<  " ran away";
                         eventRecoder.takePlace(out.str(), 2, fl);
                         wCity[fl][i] = warrior();
                     }
@@ -524,21 +528,24 @@ int main() {
             // -------------------
             // check Envader
             bool endOfGame = 0;
-            if(haveEnvader[0] >= 2 || haveEnvader[1] >= 2) {
-                
-                eventRecoder.outputall(); 
-                eventRecoder = _eventRecoder();
-            }
             if(haveEnvader[0] >= 2) {
-                cout << getTime() << " red headquarter was taken" << endl;
+				curCity = 0;
+				stringstream out;
+                out << getTime() << " red headquarter was taken";
+				eventRecoder.takePlace(out.str(), 13, 0);
                 endOfGame = 1;
             }
             if(haveEnvader[1] >= 2) {
-                cout << getTime() << " blue headquarter was taken" << endl;
+				curCity = n + 1;
+				stringstream out;
+                out << getTime() << " blue headquarter was taken";
+				eventRecoder.takePlace(out.str(), 13, 1);
                 endOfGame = 1;
             }
             if(endOfGame){
-                break;
+                eventRecoder.outputall(); 
+                eventRecoder = _eventRecoder();
+				break;
             }
             // -------------------
 
@@ -556,19 +563,33 @@ int main() {
                 }
                 rep(fl, 0, 1) if(wCity[fl][i].exist()) {
                     //restElements[fl] += cities[i].restElements;
-                     wCity[fl][i].earnElements(cities[i].restElements); 
+                    wCity[fl][i].earnElements(cities[i].restElements); 
                     cities[i].restElements = 0;
                 }
             }
-
+			auto out = [&]() {
+				cerr << "INFO:------------------" << " " << getTime() << endl;
+			rep(fl, 0, 1) {
+				rep(i, 1, n) {
+					auto t = wCity[fl][i];
+					cerr << t.getFullname() << " " << t.getelement() << " " << t.alive() << endl;
+				}
+			}
+			cerr << "-----------------------" << endl;
+			};
+			//out();
+			
             // 6. Shoot Arrow
             curTime.se = 35;
             rep(fl, 0, 1) rep(i, 1, n) {
                 curCity = i;
-                if(wCity[fl][i].exist() && wCity[fl ^ 1][nxtCity(fl, i)].exist())
-                    wCity[fl][i].tryArrow(wCity[fl ^ 1][nxtCity(fl, i)]);
+                if(wCity[fl][i].exist() && wCity[fl ^ 1][nxtCity(fl, i)].exist() && nxtCity(fl, i) != 0 && nxtCity(fl, i) != n + 1)
+                    wCity[fl][i].tryArrow(wCity[fl ^ 1][nxtCity(fl, i)]),
+						cerr << "RES: " <<  wCity[fl ^ 1][nxtCity(fl, i)].getFullname() << " " <<  wCity[fl ^ 1][nxtCity(fl, i)].alive() << endl;
             }
 
+			//out();
+			
 			rep(i, 1, n) if(wCity[0][i].alive() && wCity[1][i].alive()) canFight[i] = true; else canFight[i] = false;
             // 7. Evaluate Bomb
             curTime.se = 38;
@@ -577,14 +598,18 @@ int main() {
                 int first = cities[i].getFirst(i);
                 tryFight(wCity[first][i], wCity[first ^ 1][i]);
             }
-
+			
 			rep(i, 1, n) if(wCity[0][i].alive() && wCity[1][i].alive()) canFight[i] = true; else canFight[i] = false;
 			rep(i, 1, n) realFight[i] = false;
+
+			//out();
 			
             // 8. Fight
 			rep(fl, 0, 1) rep(i, 0, n + 1) ele[fl][i] = wCity[fl][i].getelement();
             curTime.se = 40;
 			rep(i, 0, n + 1) starter[i] = -1;
+			rep(i, 1, n) if(willFight[i]) starter[i] = cities[i].getFirst(i); // fix starter for dragon
+			
             rep(i, 1, n) if(willFight[i] && canFight[i]) {
                 curCity = i;
 				realFight[i] = true;
@@ -593,13 +618,19 @@ int main() {
                 fightIt(wCity[first][i], wCity[first ^ 1][i]);
             }
 
+			//out();
+			
             // 9. Scan the Area
             curTime.se = 40;
-            rep(i, 1, n) if(willFight[i]) {
+
+			//cerr << getTime() << endl;
+
+			rep(i, 1, n) if(willFight[i]) {
                 curCity = i;
                 // Change Flag
                 rep(fl, 0, 1)
                     if(wCity[fl][i].alive() && !wCity[fl ^ 1][i].alive()) {
+						cerr << "city " << i << " " << "win " << fl << endl;
                         if(cities[i].lstWinner == fl) {
                             if(cities[i].currentFlag != fl) {
                                 stringstream out; 
@@ -612,10 +643,10 @@ int main() {
                             cities[i].lstWinner = fl;
                         }
                     } 
-                if(!wCity[0][i].alive() && !wCity[1][i].alive())
-                    cities[i].lstWinner = -1;
+                //if(!wCity[0][i].alive() && !wCity[1][i].alive())
+                //    cities[i].lstWinner = -1, cerr << "city " << i << " break" <<endl;
 				if(wCity[0][i].alive() && wCity[1][i].alive())
-                    cities[i].lstWinner = -1;
+                    cities[i].lstWinner = -1, cerr << "city " << i << " break" << endl;
 				
                 // ---------------
 
@@ -627,7 +658,7 @@ int main() {
                 rep(fl, 0, 1) if(wCity[fl][i].alive() && !wCity[fl ^ 1][i].alive()) {
                     if(wCity[fl][i].getname() == "wolf") 
                         wCity[fl][i].scanBody(wCity[fl ^ 1][i].giveWeapon());
-					if(wCity[fl ^ 1][i].getname() == "lion") wCity[fl][i].getelement() += ele[fl ^ 1][i];
+					if(wCity[fl ^ 1][i].getname() == "lion") wCity[fl][i].getelement() += max(0, ele[fl ^ 1][i]); // here!
                 } // cheers and get weapon
             }
             rep(fl, 0, 1) rep(i, 1, n) if(!wCity[fl][i].alive()) wCity[fl][i] = warrior();
@@ -644,8 +675,12 @@ int main() {
             // get elements
             rep(i, 1, n) if(willFight[i]) {
 				curCity = i;
+				//cerr << tcase << " " << getTime() << " " << i << "CHECKING" << endl;
                 if(wCity[0][i].exist() && wCity[1][i].exist()) continue;
+				
+				//cerr << getTime() << " " << i << "CHECKed" << " " << wCity[1][i].getFullname() << " " << wCity[1][i].getelement() << " " << wCity[1][i].exist() << endl;
                 rep(fl, 0, 1) if(wCity[fl][i].exist()) {
+					//cerr << "fl " << i << " get " << endl;
                     wCity[fl][i].earnElements(cities[i].restElements);
                     cities[i].restElements = 0;
                 }
@@ -673,7 +708,7 @@ int main() {
             report(pos[0]);
             rep(i, 1, n) report(wCity[1][i]);
         }
-		if(tcase == 5) break;
+		//if(tcase == 15) break;
     }
     return 0;
 }
