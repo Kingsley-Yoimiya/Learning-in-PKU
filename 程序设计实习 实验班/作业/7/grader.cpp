@@ -30,4 +30,5 @@ int main() {
     sort(ans.begin(), ans.end());
     cout << ans.size() << '\n';
     for(int x : ans) cout << x << ' ';
+    //cerr << ans[0] << endl;
 }
