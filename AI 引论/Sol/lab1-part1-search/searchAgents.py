@@ -380,14 +380,14 @@ def cornersHeuristic(state, problem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
     
-    print (corners, walls)
+    #print (corners, walls)
     
     node = state[0]
     Visited_Corners = state[1]
     
     #return 0
 
-    print(node, corners, Visited_Corners)
+    #print(node, corners, Visited_Corners)
     
 
     pot = []
@@ -428,7 +428,12 @@ def cornersHeuristic(state, problem):
     for t, x, y in vpot:
         if linked[x] != linked[y]:
             hsum += t
-            linked[x] = linked[y]
+            if linked.count(linked[x]) > linked.count(linked[y]):
+                x, y = y, x
+            vt = linked[x]
+            for z in range(len(pot)):
+                if linked[z] == vt:
+                    linked[z] = linked[y]
 
     
     return hsum
