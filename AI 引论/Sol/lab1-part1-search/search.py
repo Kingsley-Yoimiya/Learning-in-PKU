@@ -171,6 +171,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
     while not pq.isEmpty():
         x = pq.pop()
+        if x[0] in Visited:
+            continue
         Visited.append(x[0])
         if problem.isGoalState(x[0]):
             return x[1]

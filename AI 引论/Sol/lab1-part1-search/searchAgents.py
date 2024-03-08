@@ -363,6 +363,8 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
+    
+lst = (None, None)
 
 def cornersHeuristic(state, problem):
     """
@@ -380,6 +382,39 @@ def cornersHeuristic(state, problem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
     
+    def p_calc_dis(p1, p2):
+        from queue import Queue
+        q = Queue()
+        #return 0
+        q.put((p1, 0))
+        
+        Visited = []
+        Visited.append(p1)
+        #print(p1, p2 )
+
+        while not q.empty():
+            cur, dis = q.get()
+            x, y = cur
+            #print(x, y, "VIS")
+            if cur == p2:
+                #print("!", dis)
+                return dis
+            for dir in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+                dx, dy = Actions.directionToVector(dir)
+                nx, ny = int(x + dx), int(y + dy)
+                #print(nx, ny, "CHECK", walls[nx][ny])
+                if False == walls[nx][ny] and (nx, ny) not in Visited:
+                    q.put(((nx, ny), dis + 1))
+                    Visited.append((nx, ny))
+    
+    global lst
+    global p_dis
+    if lst != (corners, walls):
+        lst = (corners, walls)
+        p_dis = {}
+        
+        
+        
     #print (corners, walls)
     
     node = state[0]
@@ -396,31 +431,60 @@ def cornersHeuristic(state, problem):
     for c in corners:
         if c not in Visited_Corners:
             pot.append(c)
-            #hsum += mazeDistance(node, c, problem)
     #return hsum
+
+
+    def calcdis(p1, p2):
+        #return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+        if p1 == p2:
+            return 0
+        if p_dis.get(p1) and p_dis[p1].get(p2):
+            return p_dis[p1][p2]
+        #global walls
+        if not p_dis.get(p1):
+            p_dis[p1] = {}
+        if not p_dis.get(p2):
+            p_dis[p2] = {}
+        p_dis[p1][p2] = p_dis[p2][p1] = p_calc_dis(p1, p2)
+        return p_dis[p1][p2]
+        abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+        
+    #pot.append(node)
+
+    from itertools import permutations
+    perms = permutations(pot, len(pot))
+
+    tpot = []   
+    
+    for perm in perms:
+        hsum = 0
+        #print(perm)
+        #print(len(pot))
+        if len(perm) > 0:
+            hsum += calcdis(perm[0], node)
+        for i in range(1, len(pot)):
+            hsum += calcdis(perm[i], perm[i - 1])
+            #hsum += abs(perm[i][0] - perm[i - 1][0]) + abs(perm[i][1] - perm[i - 1][1])
+        tpot.append(hsum)
+    return min(tpot)
+    
+    # vvpot = []
+    # for x in pot:
+    #     vvpot.append(calcdis(node, x))
+    # if len(vvpot) == 0:
+    #     vvpot = [0]
+    # return max(vvpot)
     
     pot.append(node)
 
-
-
-    # from itertools import combinations
-    # combs = combinations(range(len(pot)), len(pot))
-
-    # tpot = []   
-    # for comb in combs:
-    #     hsum = 0
-    #     for i in range(1, len(pot)):
-    #         hsum += abs(pot[i][0] - pot[i - 1][0]) + abs(pot[i][1] - pot[i - 1][1])
-    #     tpot.append(hsum)
-    # return min(tpot)
-
+    
     vpot = []
     for i in range(len(pot)):
         for j in range(len(pot)):
             x = pot[i]
             y = pot[j]
             #vpot.append(abs(x[0] - y[0]) + abs(x[1] - y[1]))
-            vpot.append((abs(x[0] - y[0]) + abs(x[1] - y[1]), i, j))
+            vpot.append((calcdis(x, y), i, j))
     
     vpot.sort()
     
@@ -435,30 +499,8 @@ def cornersHeuristic(state, problem):
                 if linked[z] == vt:
                     linked[z] = linked[y]
 
+    return hsum
     
-    return hsum
-    q = util.Queue()
-    #return 0
-    q.push((node, 0))
-    Visited = []
-    Visited.append(node)
-    while not q.isEmpty():
-        cur, dis = q.pop()
-        x, y = cur
-        if cur in pot:
-            vpot = [dis]    
-            for x in pot:
-                vpot.append(abs(node - cur[0]) + abs(node - cur[1]))
-            return max(vpot)
-            
-        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            dx, dy = Actions.directionToVector(action)
-            nx, ny = int(x + dx), int(y + dy)
-            
-            if 'F' == walls[nx][ny] and (nx, ny) not in Visited:
-                q.push(((nx, ny), dis+1))
-                Visited.append(nx, ny)
-    return hsum
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
