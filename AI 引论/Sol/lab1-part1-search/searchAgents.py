@@ -593,8 +593,73 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    
+    def p_calc_dis(p1, p2):
+        from queue import Queue
+        q = Queue()
+        #return 0
+        q.put((p1, 0))
+        
+        Visited = []
+        Visited.append(p1)
+        #print(p1, p2 )
+
+        while not q.empty():
+            cur, dis = q.get()
+            x, y = cur
+            #print(x, y, "VIS")
+            if cur == p2:
+                #print("!", dis)
+                return dis
+            for dir in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+                dx, dy = Actions.directionToVector(dir)
+                nx, ny = int(x + dx), int(y + dy)
+                #print(nx, ny, "CHECK", walls[nx][ny])
+                if False == walls[nx][ny] and (nx, ny) not in Visited:
+                    q.put(((nx, ny), dis + 1))
+                    Visited.append((nx, ny))
+    
+    global lst
+    global p_dis
+    if lst != (foodGrid.asList(), walls):
+        lst = (foodGrid.asList(), walls)
+        p_dis = {}
+    
+    def calcdis(p1, p2):
+        #return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+        if p1 == p2:
+            return 0
+        if p_dis.get(p1) and p_dis[p1].get(p2):
+            return p_dis[p1][p2]
+        #global walls
+        if not p_dis.get(p1):
+            p_dis[p1] = {}
+        if not p_dis.get(p2):
+            p_dis[p2] = {}
+        p_dis[p1][p2] = p_dis[p2][p1] = p_calc_dis(p1, p2)
+        return p_dis[p1][p2]
+
+    hsum = 0
+    pot = foodGrid.asList()
+    #print(position, pot)
+    #pot.append(position)
+    vpot = [(calcdis(pot[i], pot[j]), i, j) for i in range(len(pot)) for j in range(i + 1, len(pot))]
+    vpot.sort()
+    linked = [i for i in range(len(pot))]
+    for (w, x, y) in vpot:
+        if linked[x] != linked[y]:
+            hsum += w
+            t = linked[x]
+            for z in range(len(pot)):
+                if linked[z] == t:
+                    linked[z] = linked[y]
+    
+    if len(pot):
+        return min([calcdis(position, x) for x in pot]) + hsum
+    else:
+        return hsum
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
