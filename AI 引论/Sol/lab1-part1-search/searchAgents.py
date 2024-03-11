@@ -685,13 +685,30 @@ class ClosestDotSearchAgent(SearchAgent):
         """
         # Here are some useful elements of the startState
         startPosition = gameState.getPacmanPosition()
-        food = gameState.getFood()
+        food = gameState.getFood().asList()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
-
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-
+        ways = []
+        while not problem.isGoalState(startPosition):
+            #print (startPosition, walls)
+            mnd = 114514
+            mnp = (0, 0)
+            for t in food:
+                v = mazeDistance(t, startPosition, gameState)
+                if v < mnd:
+                    mnd = v
+                    mnp = t
+            x, y = startPosition
+            for dir in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+                dx, dy = Actions.directionToVector(dir)
+                nx, ny = int(x + dx), int(y + dy)
+                if walls[nx][ny] == False and mnd > mazeDistance((nx, ny), mnp, gameState):
+                    startPosition = (nx, ny)
+                    ways.append(dir)
+                    break
+        #print(ways)
+        return ways
+    
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
     A search problem for finding a path to any food.
@@ -724,9 +741,9 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         complete the problem definition.
         """
         x,y = state
-
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        for t in self.food.asList():
+            if t == (x, y):
+                return True
 
 def mazeDistance(point1, point2, gameState):
     """
