@@ -1,0 +1,12 @@
+[submodule "数分 II/Solution"]
+	path = 数分 II/Solution
+	url = git@github.com:Kingsley-Yoimiya/-mathematical-analysis-Homework-II-2024-Spring.git
+[submodule "软件工程 实验班"]
+	path = 软件工程 实验班
+	url = git@github.com:Kingsley-Yoimiya/software-engineering-hw.git
+[submodule "计算概论 实验班（only half homework)"]
+	path = 计算概论 实验班（only half homework)
+	url = https://github.com/Kingsley-Yoimiya/my-2023-functional-programming-homework
+[submodule "数分 I"]
+	path = 数分 I
+	url = git@e.coding.net:yinjinrun/cs-learning-and-homework/mathematical-analysis-slides-I-2023-Fall.git

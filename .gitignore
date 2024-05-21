@@ -1,0 +1,15 @@
+
+.DS_Store
+数分 II/.DS_Store
+数分 II/作业/.DS_Store
+*.out
+*.aux
+*.gz
+*.log
+程序设计实习 实验班/大作业/war
+程序设计实习 实验班/大作业/war.pg
+*.in
+*.pyc
+程序设计实习 实验班/作业/.vscode/settings.json
+AI 引论/Sol/lab2/model/rforest.npy
+AI 引论/Sol/lab2/model/tree.npy
