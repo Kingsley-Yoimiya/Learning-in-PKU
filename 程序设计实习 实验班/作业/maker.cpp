@@ -10,7 +10,7 @@ const int N = 1e5 + 10;
 
 typedef unsigned long long u64;
 
-int n, q;
+int n, q, m;
 u64 a[N];
 pair < u64, int > b[M][N];
 int tr[M][64];
@@ -24,13 +24,27 @@ u64 trans(u64 x, int i) {
 
 mt19937_64 rnd(time(NULL));
 
-const int V = (1 << 30) - 1;
+const int V = 1e6;
+int val[N];
 
 int main() {
     freopen("1.in", "w", stdout);
-    n = q = 50000;
-    cout << n << endl;
-    rep(i, 1, n) 
-        cout << (rnd() & V) << " " << (rnd() & V) << " " << (rnd() & V) << endl;
+    n = 6e4, m = 300; //q = 50000;
+    cout << n << " " << m << endl;
+    rep(i, 1, m) val[i] = int(rnd() % 100) - 50;
+    double res = 0;
+    rep(i, 1, n) {
+        int t = 20; printf("%d ", t);
+        int ret = 0;
+        rep(j, 1, t) {
+            int pos = rnd() % m + 1, v = int(rnd() % V) - V / 2;
+            ret += val[pos] * v;
+            printf("%d %d ", pos, v);
+        } 
+        int val = rnd() % 2; val -= 1; 
+        ret += val; res += val * val;
+        printf("%d\n", ret + rnd() % 2);
+    }
+    cerr << res << endl;
     return 0;
 }
