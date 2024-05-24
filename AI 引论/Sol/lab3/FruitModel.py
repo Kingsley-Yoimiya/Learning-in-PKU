@@ -18,7 +18,7 @@ class NullModel:
 class NaiveBayesModel:
     def __init__(self):
         self.dataset = traindataset(shuffle=False) # 完整训练集，需较长加载时间
-        #self.dataset = minitraindataset(shuffle=False) # 用来调试的小训练集，仅用于检查代码语法正确性
+        # self.dataset = minitraindataset(shuffle=False) # 用来调试的小训练集，仅用于检查代码语法正确性
 
         # 以下内容可根据需要自行修改，不修改也可以完成本题
         self.token_num = [{}, {}] # token在正负样本中出现次数
@@ -27,13 +27,27 @@ class NaiveBayesModel:
         self.count()
 
     def count(self):
-        # TODO: YOUR CODE HERE
+        # YOUR CODE HERE
         # 提示：统计token分布不需要返回值
-        raise NotImplementedError # 填写完成后删除这句
+        for i in range(self.dataset.len):
+            text, label = self.dataset.get(i)
+            #print(text)
+            for token in tokenize(text):
+                #print(label, token)
+                self.token_num[label][token] = self.token_num[label].get(token, 0) + 1
+                self.V += (self.token_num[0].get(token, 0) + self.token_num[1].get(token, 0)) == 1
+                self.pos_neg_num[label] += 1
+        # print(self.token_num)
+        return
 
     def __call__(self, text):
         # TODO: YOUR CODE HERE
         # 返回1或0代表当前句子分类为正/负样本
+        prob = [self.pos_neg_num[0] / self.V, self.pos_neg_num[1] / self.V]
+        for token in text:
+            for pos in range(2):
+                prob[pos] *= (self.token_num[pos].get(token, 0) + 1) / (self.pos_neg_num[pos] + self.V)
+        return prob[1] > prob[0]
         raise NotImplementedError
 
 
