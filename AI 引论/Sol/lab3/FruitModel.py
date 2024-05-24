@@ -150,9 +150,9 @@ modeldict = {
 
 if __name__ == '__main__':
     embedding = Embedding()
-    lr = 1e-3   # 学习率
-    wd1 = 1e-4  # L1正则化
-    wd2 = 1e-4  # L2正则化
+    lr = 1e-2   # 学习率
+    wd1 = 1e-6  # L1正则化
+    wd2 = 1e-10  # L2正则化
     batchsize = 64
     max_epoch = 10
     
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     # 完整训练集训练有点慢
     best_train_acc = 0
     dataloader = traindataset(shuffle=True) # 完整训练集
-    # dataloader = minitraindataset(shuffle=True) # 用来调试的小训练集
+    # dataloader = minitraindataset(shuffle=False) # 用来调试的小训练集
     for i in range(1, max_epoch+1):
         hatys = []
         ys = []

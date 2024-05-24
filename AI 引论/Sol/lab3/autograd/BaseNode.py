@@ -164,6 +164,11 @@ class BatchNorm(Node):
     def train(self):
         self.updatemean = True
 
+def softMax(x, axis = -1) :
+    x_max = np.max(x, axis = axis, keepdims = True)
+    e_x = np.exp(x - x_max)
+    sum_e_x = np.sum(e_x, axis = axis, keepdims = True)
+    return e_x / sum_e_x
 
 class Attention(Node):
     # input X: (B, L, d)
@@ -185,8 +190,8 @@ class Attention(Node):
         Q = X @ W_q
         K = X @ W_k
         V = X @ W_v
-        result = (Q @ K.transpose(0, 2, 1) / np.sqrt(self.dim)) @ V + X
-        self.cache.append((X, Q @ K.transpose(0, 2, 1), Q, K, V))
+        result = softMax(Q @ K.transpose(0, 2, 1) / np.sqrt(self.dim)) @ V + X
+        self.cache.append((X, softMax(Q @ K.transpose(0, 2, 1) / np.sqrt(self.dim)), Q, K, V))
         # print("Attention:",X.shape, Q.shape, K.shape, V.shape, result.shape)
         return result
         
