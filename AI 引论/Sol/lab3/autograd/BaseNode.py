@@ -179,10 +179,16 @@ class Attention(Node):
         
     def cal(self, X):
         W_q, W_k, W_v = self.params[0], self.params[1], self.params[2]
-        # TODO: YOUR CODE HERE
+        # YOUR CODE HERE
         # 忽略线性映射的偏置项且需要包括残差连接
         # 即实现Attention(X, X, X) + X
-        raise NotImplementedError
+        Q = X @ W_q
+        K = X @ W_k
+        V = X @ W_v
+        result = (Q @ K.transpose(0, 2, 1) / np.sqrt(self.dim)) @ V + X
+        self.cache.append((X, Q @ K.transpose(0, 2, 1), Q, K, V))
+        # print("Attention:",X.shape, Q.shape, K.shape, V.shape, result.shape)
+        return result
         
     def backcal(self, grad):
         # 需要在前向过程中提供以下值，以完成后向过程
@@ -223,15 +229,17 @@ class Linear(Node):
         super().__init__("linear", weight, bias)
 
     def cal(self, X):
-        # TODO: YOUR CODE HERE
-        # 与lab2相同
-        raise NotImplementedError
-
+        # YOUR CODE HERE
+        self.cache.append(X.reshape(-1, X.shape[-1]))
+        # print(X.shape, self.params[0].shape, self.params[1].shape)
+        return X @ self.params[0] + self.params[1]
+        
     def backcal(self, grad):
-        # TODO: YOUR CODE HERE
-        # 与lab2相同
-        raise NotImplementedError
-
+        # YOUR CODE HERE
+        # print(grad.shape)
+        self.grad = self.cache[-1].T @ grad, np.sum(grad, axis = 0)
+        return (self.params[0] @ grad.T).T
+        
 
 class ResLinear(Node):
     # shape x: (*, d1)
@@ -248,17 +256,22 @@ class ResLinear(Node):
         super().__init__("ResLinear", weight, bias)
 
     def cal(self, X):
-        # TODO: YOUR CODE HERE
+        # YOUR CODE HERE
         # 提示：相比于线性层，增加了残差连接
         # 即Linear(X)+X
-        raise NotImplementedError
+        self.cache.append(X.reshape(-1, X.shape[-1]))
+        # print(X.shape, self.params[0].shape, self.params[1].shape)
+        return X @ self.params[0] + self.params[1] + X
 
     def backcal(self, grad):
-        # TODO: YOUR CODE HERE
+        # YOUR CODE HERE
         # 提示：相比于线性层，增加了残差连接
         # 即Linear(X)+X
-        raise NotImplementedError
-
+        grad = grad.reshape(-1, grad.shape[-1])
+        # print(self.cache[-1].T.shape, grad.shape)
+        self.grad = self.cache[-1].T @ grad, np.sum(grad, axis = 0)
+        return (self.params[0] @ grad.T).T + grad
+        
 
 class relu(Node):
     # input X: (*)，即可能是任意维度
@@ -282,12 +295,20 @@ class LogSoftmax(Node):
         self.dim = dim
 
     def cal(self, X):
-        # TODO: YOUR CODE HERE
-        raise NotImplementedError
+        # YOUR CODE HERE
+        X = X - np.max(X, axis=self.dim, keepdims=True)
+        expX = np.exp(X)
+        ret = expX / expX.sum(axis=self.dim, keepdims=True)
+        ret = np.log(ret)
+        self.cache.append(ret)
+        return ret
 
     def backcal(self, grad):
-        # TODO: YOUR CODE HERE
-        raise NotImplementedError
+        # YOUR CODE HERE
+        LogSoftmaxX = self.cache[-1]
+
+        #print("NEED:", len(self.params), grad.shape, LogSoftmaxX.shape, (grad - grad.sum(axis=self.dim, keepdims=True) * np.exp(LogSoftmaxX)).shape)
+        return grad - grad.sum(axis=self.dim, keepdims=True) * np.exp(LogSoftmaxX)
 
 
 class Sum(Node):

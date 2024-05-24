@@ -54,9 +54,12 @@ class Graph(List):
         if debug:
             print("backward debug start")
             
-        # TODO: YOUR CODE HERE
+        # YOUR CODE HERE
         # 与lab2相同
-            
+        for id in range(len(self)-1, -1, -1):
+            grad = self[id].backward(grad, debug)
+            if self[id].name != "linear" and self[id].name != "ResLinear" and self[id].name != "batchnorm" and len(self[id].params) != 0:
+                self[id].grad.append(grad)
         if debug:
             print("backward debug end")
         return grad
@@ -70,9 +73,11 @@ class Graph(List):
         @param wd2: 超参数, L2正则化
         @return: 不需要返回值
         """  
-        # TODO: YOUR CODE HERE
+        # YOUR CODE HERE
         # 与lab2相同
-        raise NotImplementedError # 填写完成后删除这句
+        for id in range(len(self)):
+            for i in range(len(self[id].params)):
+                self[id].params[i] -= lr * (self[id].grad[i]) + 2 * wd2 * self[id].params[i] + wd1 * abs(self[id].params[i])
 
     def parameters(self):
         """

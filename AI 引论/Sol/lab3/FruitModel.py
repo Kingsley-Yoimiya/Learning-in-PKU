@@ -73,10 +73,20 @@ class Embedding():
                 self.emb[word] = vector
         
     def __call__(self, text, max_len=50):
-        # TODO: YOUR CODE HERE
+        # YOUR CODE HERE
         # 利用self.emb将句子映射为一个二维向量（LxD），注意，同时需要修改训练代码中的网络维度部分
         # 默认长度L为50，特征维度D为100
-        # 提示: 考虑句子如何对齐长度，且可能存在空句子情况（即所有单词均不在emd表内）      
+        # 提示: 考虑句子如何对齐长度，且可能存在空句子情况（即所有单词均不在emd表内）
+        self.emb['<error>'] = np.zeros(100)
+        res = []
+        for word in text:
+            if word in self.emb:
+                res.append(self.emb[word])
+            else:
+                res.append(self.emb['<error>'])
+        for i in range(max_len - len(res)):
+            res.append(self.emb['<error>'])
+        return res
         raise NotImplementedError
 
 
@@ -156,7 +166,7 @@ if __name__ == '__main__':
     # 完整训练集训练有点慢
     best_train_acc = 0
     dataloader = traindataset(shuffle=True) # 完整训练集
-    #dataloader = minitraindataset(shuffle=True) # 用来调试的小训练集
+    # dataloader = minitraindataset(shuffle=True) # 用来调试的小训练集
     for i in range(1, max_epoch+1):
         hatys = []
         ys = []
