@@ -114,21 +114,19 @@ class QAModel():
         # TODO: YOUR CODE HERE
         # 返回单词在文档中的频度
         # document变量结构请参考fruit.py中get_document()函数
-        
-        raise NotImplementedError  
+        return document['document'].count(word) / len(document['document'])
 
     def idf(self, word):
-        # TODO: YOUR CODE HERE
+        # YOUR CODE HERE
         # 返回单词IDF值，提示：你需要利用self.document_list来遍历所有文档
         # 注意python整除与整数除法的区别
-        
-        raise NotImplementedError
+        return math.log10(len(self.document_list) / 
+                          sum([word in document['document'] for document in self.document_list]) + 1)
     
     def tfidf(self, word, document):
-        # TODO: YOUR CODE HERE
+        # YOUR CODE HERE
         # 返回TF-IDF值
-        
-        raise NotImplementedError
+        return self.tf(word, document) * self.idf(word)
 
     def __call__(self, query):
         query = tokenize(query) # 将问题token化
@@ -136,7 +134,11 @@ class QAModel():
         # 利用上述函数来实现QA
         # 提示：你需要根据TF-IDF值来选择一个最合适的文档，再根据IDF值选择最合适的句子
         # 返回时请返回原本句子，而不是token化后的句子，数据结构请参考README中数据结构部分以及fruit.py中用于数据处理的get_document()函数
-        
+        document = self.document_list[np.argmax([max([self.tfidf(word, document) for word in query]) for document in self.document_list])]
+        keyWord = query[np.argmin([self.tfidf(x, document) for x in query])]
+        # print(keyWord)
+        sentenceId = np.argmax([sentence[0].count(keyWord) for sentence in document['sentences']])
+        return document['sentences'][sentenceId][1]
         raise NotImplementedError
 
 
