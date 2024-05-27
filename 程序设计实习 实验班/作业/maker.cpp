@@ -10,7 +10,7 @@ const int N = 1e5 + 10;
 
 typedef unsigned long long u64;
 
-int n, q, m;
+int n, q, m, d;
 u64 a[N];
 pair < u64, int > b[M][N];
 int tr[M][64];
@@ -23,28 +23,18 @@ u64 trans(u64 x, int i) {
 }
 
 mt19937_64 rnd(time(NULL));
+normal_distribution<> gen(0, 1);
 
 const int V = 1e6;
 int val[N];
 
 int main() {
     freopen("1.in", "w", stdout);
-    n = 6e4, m = 300; //q = 50000;
-    cout << n << " " << m << endl;
-    rep(i, 1, m) val[i] = int(rnd() % 100) - 50;
-    double res = 0;
-    rep(i, 1, n) {
-        int t = 20; printf("%d ", t);
-        int ret = 0;
-        rep(j, 1, t) {
-            int pos = rnd() % m + 1, v = int(rnd() % V) - V / 2;
-            ret += val[pos] * v;
-            printf("%d %d ", pos, v);
-        } 
-        int val = rnd() % 2; val -= 1; 
-        ret += val; res += val * val;
-        printf("%d\n", ret + rnd() % 2);
+    n = 1e5, d = 1000, m = 1e5; //q = 50000;
+    cout << n << " " << d << " " << m << endl;
+    rep(_, 1, m) {
+        int i = rnd() % n + 1, j = rnd() % d + 1; double w = gen(rnd);
+        cout << i << " " << j << " " << w << endl;
     }
-    cerr << res << endl;
     return 0;
 }
