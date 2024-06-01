@@ -15,7 +15,7 @@ using vec = vector < db >;
 const int N = 1200 + 10;
 const db eps = 1e-3;
 
-mt19937 rnd(time(NULL));
+mt19937 rnd(19491001);
 normal_distribution<> gen(0, 1);
 
 db A[N][N], x[N];
