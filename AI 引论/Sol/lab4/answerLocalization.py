@@ -33,8 +33,6 @@ def generate_uniform_particles(walls, N):
     particles: List[Particle], 返回在空地上均匀采样出的N个采样点的列表，每个点的权重都是1/N
     """
     all_particles: List[Particle] = []
-    for _ in range(N):
-        all_particles.append(Particle(1.0, 1.0, 1.0, 0.0))
     
     global globalWalls, particleNum, scope
     globalWalls = walls
@@ -43,7 +41,7 @@ def generate_uniform_particles(walls, N):
 
     for _ in range(N):
         pos =  generNode(walls)
-        all_particles[_] = Particle(pos[0], pos[1], np.random.uniform(-np.pi, np.pi), 1.0 / N)
+        all_particles.append(Particle(pos[0], pos[1], np.random.uniform(0, 2 * np.pi), 1.0 / N))
 
     return all_particles
 
@@ -56,12 +54,7 @@ def calculate_particle_weight(estimated, gt):
     输出：
     weight, float, 该采样点的权重
     """
-    weight = 1.0
-    dist = np.linalg.norm(gt - estimated, ord = 1)
-    weight = np.exp(-dist * 0.12)
-    # print(gt, estimated)
-    # print(dist, weight)
-    return weight
+    return np.exp(-np.linalg.norm(gt - estimated, ord = 1) * 0.1)
 
 
 def resample_particles(walls, particles: List[Particle]):
@@ -74,28 +67,16 @@ def resample_particles(walls, particles: List[Particle]):
     """
     resampled_particles: List[Particle] = []
     indices = []
-    
-    for x in particles:
-        for _ in range(int(particleNum * x.weight * 1.03)):
-            if len(indices) >= particleNum:
-                break
-            indices.append(x)
 
-    # np.random.choice(size = int(particleNum * t), p = probability, a = particles).tolist()
+    def norm(x):
+        return x / sum(x)
+    indices = np.random.choice(size = int(particleNum * 0.95), p = norm([x.weight for x in particles]), a = particles).tolist()
+    
     while len(indices) < particleNum:
         pos = generNode(walls)
-        indices.append(Particle(pos[0], pos[1], np.random.uniform(-np.pi, np.pi), 1 / particleNum))
-    # print([p.position for p in indices])
+        indices.append(Particle(pos[0], pos[1], np.random.uniform(0, 2 * np.pi), 1 / particleNum))
     for particle in indices:
-        # particle.theta += np.random.normal(0, 0.001)
-        # particle.position += np.random.normal(0, 0.01, 2)
-        # if checkCollision(particle.position, walls) or particle.position[0] < 0 or particle.position[1] < 0 or particle.position[0] > scope[0] or particle.position[1] > scope[1]:
-        #     pos = generNode(walls)
-        #     particle.position = pos
-        #     particle.theta = np.random.uniform(0, 2 * np.pi)
-        #     particle.weight = 1.0
-        resampled_particles.append(particle)
-    # print([x.position for x in resampled_particles])
+        resampled_particles.append(Particle(particle.position[0], particle.position[1], particle.theta, 1 / particleNum))
     return resampled_particles
 
 def apply_state_transition(p: Particle, traveled_distance, dtheta):
@@ -107,17 +88,9 @@ def apply_state_transition(p: Particle, traveled_distance, dtheta):
     """
     # print(dtheta, traveled_distance)
 
-    p.theta += dtheta + np.random.normal(0, 0.009)
-    p.theta %= np.pi * 2
-    # traveled_distance += np.random.normal(0, 0.1)
+    p.theta += dtheta + np.random.normal(0, 0.05)
+    traveled_distance += np.random.normal(0, 0.1)
     p.position += np.array([np.cos(p.theta) * traveled_distance, np.sin(p.theta) * traveled_distance])
-    p.position += np.random.normal(0, 0.09, 2)
-    return p
-    if checkCollision(p.position) or p.position[0] < 0 or p.position[1] < 0 or p.position[0] > scope[0] or p.position[1] > scope[1]:
-        pos = generNode()
-        p.position = pos
-        p.theta = np.random.uniform(0, 2 * np.pi)
-        p.weight = 1.0
     return p
 
 def get_estimate_result(particles: List[Particle]):
