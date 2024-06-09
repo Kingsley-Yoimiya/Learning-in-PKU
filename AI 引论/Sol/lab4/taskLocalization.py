@@ -50,6 +50,7 @@ class MontoCarloLocalization:
         cumsum = 0.0
         for p in self.particles:
             cumsum += p.weight
+        print(cumsum)
         for p in self.particles:
             p.weight /= (cumsum + 1e-6)
     
@@ -138,6 +139,7 @@ if __name__ == "__main__":
         localizer = MontoCarloLocalization(scene, 500, odometry, lidar)
         result_particle = localizer.run_localization()
         x = np.abs(result_particle.theta - odometry[-1, 2]) / (2 * np.pi)
+        print(odometry[-1])
         x -= int(x)
         dtheta = 2 * np.pi * x
         dtheta = 2 * np.pi - dtheta if dtheta > np.pi else dtheta

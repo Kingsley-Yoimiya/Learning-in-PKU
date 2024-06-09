@@ -64,7 +64,7 @@ def q1():
     errors = []
     for i in range(15):
         output = programcall(f"{PYTHON_PATH} taskLocalization.py --no_render --test_idx {i}")
-        # print(output)
+        print(output)
         errors.append(filterq1(output))
     return scorer(np.exp(-np.mean(errors)), 0.90, 0.0, 0.95)
 
