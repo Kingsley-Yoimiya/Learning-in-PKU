@@ -79,6 +79,8 @@ def q2():
             return 0
         res.append(checkpoint)
     err = np.linalg.norm(np.array(res) - answers)
+    # print(np.array(res), answers)
+    # print(err)
     return scorer(np.exp(-err), 0.95, 0.9, 0.99)
 
 def q3():

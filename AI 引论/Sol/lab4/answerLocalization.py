@@ -3,11 +3,26 @@ import numpy as np
 from utils import Particle
 
 ### 可以在这里写下一些你需要的变量和函数 ###
-COLLISION_DISTANCE = 1
-MAX_ERROR = 50000
+COLLISION_DISTANCE = 0.75
 
 ### 可以在这里写下一些你需要的变量和函数 ###
 
+globalWalls = []
+particleNum = 0
+scope = np.array([10, 10])
+
+def checkCollision(pos, walls):
+    t = [int(pos[0] + 0.5), int(pos[1] + 0.5)]
+    for p in walls:
+        if np.array_equal(p, t):
+            return True
+    return False
+
+def generNode(walls):
+    while True:
+        pos = [np.random.uniform(0, scope[0]), np.random.uniform(0, scope[1])]
+        if not checkCollision(pos, walls):
+            return pos
 
 def generate_uniform_particles(walls, N):
     """
@@ -20,9 +35,16 @@ def generate_uniform_particles(walls, N):
     all_particles: List[Particle] = []
     for _ in range(N):
         all_particles.append(Particle(1.0, 1.0, 1.0, 0.0))
-    ### 你的代码 ###
     
-    ### 你的代码 ###
+    global globalWalls, particleNum, scope
+    globalWalls = walls
+    particleNum = N
+    scope = walls.max(axis = 0)
+
+    for _ in range(N):
+        pos =  generNode(walls)
+        all_particles[_] = Particle(pos[0], pos[1], np.random.uniform(-np.pi, np.pi), 1.0 / N)
+
     return all_particles
 
 
@@ -35,9 +57,10 @@ def calculate_particle_weight(estimated, gt):
     weight, float, 该采样点的权重
     """
     weight = 1.0
-    ### 你的代码 ###
-    
-    ### 你的代码 ###
+    dist = np.linalg.norm(gt - estimated, ord = 1)
+    weight = np.exp(-dist * 0.12)
+    # print(gt, estimated)
+    # print(dist, weight)
     return weight
 
 
@@ -50,11 +73,29 @@ def resample_particles(walls, particles: List[Particle]):
     particles: List[Particle], 返回重采样后的N个采样点的列表
     """
     resampled_particles: List[Particle] = []
-    for _ in range(len(particles)):
-        resampled_particles.append(Particle(1.0, 1.0, 1.0, 0.0))
-    ### 你的代码 ###
+    indices = []
     
-    ### 你的代码 ###
+    for x in particles:
+        for _ in range(int(particleNum * x.weight * 1.03)):
+            if len(indices) >= particleNum:
+                break
+            indices.append(x)
+
+    # np.random.choice(size = int(particleNum * t), p = probability, a = particles).tolist()
+    while len(indices) < particleNum:
+        pos = generNode(walls)
+        indices.append(Particle(pos[0], pos[1], np.random.uniform(-np.pi, np.pi), 1 / particleNum))
+    # print([p.position for p in indices])
+    for particle in indices:
+        # particle.theta += np.random.normal(0, 0.001)
+        # particle.position += np.random.normal(0, 0.01, 2)
+        # if checkCollision(particle.position, walls) or particle.position[0] < 0 or particle.position[1] < 0 or particle.position[0] > scope[0] or particle.position[1] > scope[1]:
+        #     pos = generNode(walls)
+        #     particle.position = pos
+        #     particle.theta = np.random.uniform(0, 2 * np.pi)
+        #     particle.weight = 1.0
+        resampled_particles.append(particle)
+    # print([x.position for x in resampled_particles])
     return resampled_particles
 
 def apply_state_transition(p: Particle, traveled_distance, dtheta):
@@ -64,9 +105,19 @@ def apply_state_transition(p: Particle, traveled_distance, dtheta):
     traveled_distance, dtheta: ground truth的Pacman这一步相对于上一步运动方向改变了dtheta，并移动了traveled_distance的距离
     particle: 按照相同方式进行移动后的粒子
     """
-    ### 你的代码 ###
+    # print(dtheta, traveled_distance)
 
-    ### 你的代码 ###
+    p.theta += dtheta + np.random.normal(0, 0.009)
+    p.theta %= np.pi * 2
+    # traveled_distance += np.random.normal(0, 0.1)
+    p.position += np.array([np.cos(p.theta) * traveled_distance, np.sin(p.theta) * traveled_distance])
+    p.position += np.random.normal(0, 0.09, 2)
+    return p
+    if checkCollision(p.position) or p.position[0] < 0 or p.position[1] < 0 or p.position[0] > scope[0] or p.position[1] > scope[1]:
+        pos = generNode()
+        p.position = pos
+        p.theta = np.random.uniform(0, 2 * np.pi)
+        p.weight = 1.0
     return p
 
 def get_estimate_result(particles: List[Particle]):
@@ -78,6 +129,6 @@ def get_estimate_result(particles: List[Particle]):
     """
     final_result = Particle()
     ### 你的代码 ###
-    
+    final_result = particles[0]
     ### 你的代码 ###
     return final_result

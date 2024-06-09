@@ -1,7 +1,6 @@
 import numpy as np
 from physicsWrapper import PhysicsInfo
 
-
 def calc_pd_force(target_pos, current_pos, current_vel, kp, kd):
     """
     输入：
@@ -13,8 +12,4 @@ def calc_pd_force(target_pos, current_pos, current_vel, kp, kd):
     输出：
     force: 维度为(2,)的np.array，施加到pacman上的PD控制力
     """
-    force = np.zeros(2,)
-    ### 你的代码 ###
-
-    ### 你的代码 ###
-    return force
+    return (target_pos - current_pos) * kp - current_vel * kd
