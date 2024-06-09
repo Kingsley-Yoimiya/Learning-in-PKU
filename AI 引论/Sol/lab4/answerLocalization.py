@@ -88,9 +88,10 @@ def apply_state_transition(p: Particle, traveled_distance, dtheta):
     """
     # print(dtheta, traveled_distance)
 
-    p.theta += dtheta + np.random.normal(0, 0.05)
+    p.theta += dtheta + np.random.normal(0, 0.03)
     traveled_distance += np.random.normal(0, 0.1)
     p.position += np.array([np.cos(p.theta) * traveled_distance, np.sin(p.theta) * traveled_distance])
+    p.position += np.random.normal(0, 0.1, 2)
     return p
 
 def get_estimate_result(particles: List[Particle]):
