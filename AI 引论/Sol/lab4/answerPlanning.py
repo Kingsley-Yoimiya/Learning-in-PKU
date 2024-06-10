@@ -5,13 +5,13 @@ from simuScene import PlanningMap
 
 
 ### 定义一些你需要的变量和函数 ###
-STEP_DISTANCE = 6
-REDUCE_STEP_DISTANCE = 1.3
+STEP_DISTANCE = 1
+REDUCE_STEP_DISTANCE = 1.5
 FULL_STEP_DISTANCE = STEP_DISTANCE
-MIN_STEP_DISTANCE = 0.2
+MIN_STEP_DISTANCE = 0.5
 TARGET_THREHOLD = 0.5
-WALK_THREHOLD = 0.1
-TRY_LIM = 4
+WALK_THREHOLD = 0.5
+TRY_LIM = 2
 ### 定义一些你需要的变量和函数 ###
 
 
@@ -43,12 +43,12 @@ class RRT:
 
         ### 你的代码 ###
         # 如有必要，此行可删除
-        print("finding path", current_position, next_food)
+        # print("finding path", current_position, next_food)
         self.path = self.build_tree(current_position, next_food)
         self.pathPosition = 0
         self.pathCnt = 0
-        print(self.path)
-        print([self.map.checkline(self.path[i].tolist(), self.path[i+1].tolist()) for i in range(len(self.path)-1)])
+        # print(self.path)
+        # print([self.map.checkline(self.path[i].tolist(), self.path[i+1].tolist()) for i in range(len(self.path)-1)])
         
         
     def get_target(self, current_position, current_velocity):
@@ -67,20 +67,20 @@ class RRT:
         """
         target_pose = np.zeros_like(current_position)
         self.pathCnt += 1
-        print(len(self.path), self.pathPosition, self.pathCnt)
+        # print(len(self.path), self.pathPosition, self.pathCnt)
         
         if self.pathPosition >= len(self.path):
-            print("REGENERATING")
+            # print("REGENERATING")
             self.find_path(current_position, self.path[-1])
-            print("REGENER RESULT:", self.path)
+            # print("REGENER RESULT:", self.path)
         if self.pathCnt > TRY_LIM or np.linalg.norm(current_position - self.path[self.pathPosition]) < WALK_THREHOLD:
             self.pathPosition += 1
             self.pathCnt = 0
         if self.pathPosition >= len(self.path):
-            print("REGENERATING")
+            # print("REGENERATING")
             self.find_path(current_position, self.path[-1])
             print("REGENER RESULT:", self.path)
-        print(current_position, len(self.path), self.pathPosition, self.pathCnt, self.path[self.pathPosition])
+        # print(current_position, len(self.path), self.pathPosition, self.pathCnt, self.path[self.pathPosition])
         target_pose = self.path[self.pathPosition]
         return target_pose
         
