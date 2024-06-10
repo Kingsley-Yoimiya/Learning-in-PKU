@@ -6,7 +6,7 @@ from simuScene import PlanningMap
 
 ### 定义一些你需要的变量和函数 ###
 STEP_DISTANCE = 1
-REDUCE_STEP_DISTANCE = 1.5
+REDUCE_STEP_DISTANCE = 2
 FULL_STEP_DISTANCE = STEP_DISTANCE
 MIN_STEP_DISTANCE = 0.5
 TARGET_THREHOLD = 0.5
@@ -79,7 +79,7 @@ class RRT:
         if self.pathPosition >= len(self.path):
             # print("REGENERATING")
             self.find_path(current_position, self.path[-1])
-            print("REGENER RESULT:", self.path)
+            # print("REGENER RESULT:", self.path)
         # print(current_position, len(self.path), self.pathPosition, self.pathCnt, self.path[self.pathPosition])
         target_pose = self.path[self.pathPosition]
         return target_pose
@@ -105,10 +105,11 @@ class RRT:
             is_empty, newpoint = self.connect_a_to_b(graph[nearestId].pos, t)
             if is_empty:
                 graph.append(TreeNode(nearestId, newpoint[0], newpoint[1]))
-                STEP_DISTANCE = FULL_STEP_DISTANCE
-            else:
+            if not is_empty or STEP_DISTANCE != MIN_STEP_DISTANCE:
                 STEP_DISTANCE /= REDUCE_STEP_DISTANCE
                 STEP_DISTANCE = max(STEP_DISTANCE, MIN_STEP_DISTANCE)
+            else:
+                STEP_DISTANCE = FULL_STEP_DISTANCE
                 # print("add node", newpoint)
         path.append(goal)
         nearestId, _ = self.find_nearest_point(goal, graph)
