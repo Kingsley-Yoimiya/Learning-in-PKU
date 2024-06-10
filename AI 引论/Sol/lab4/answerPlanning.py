@@ -5,9 +5,13 @@ from simuScene import PlanningMap
 
 
 ### 定义一些你需要的变量和函数 ###
-STEP_DISTANCE = 0.5
-TARGET_THREHOLD = 0.25
-
+STEP_DISTANCE = 6
+REDUCE_STEP_DISTANCE = 1.3
+FULL_STEP_DISTANCE = STEP_DISTANCE
+MIN_STEP_DISTANCE = 0.2
+TARGET_THREHOLD = 0.5
+WALK_THREHOLD = 0.1
+TRY_LIM = 4
 ### 定义一些你需要的变量和函数 ###
 
 
@@ -20,12 +24,9 @@ class RRT:
         self.map = PlanningMap(walls)
         self.walls = walls
         
-        # 其他需要的变量
-        ### 你的代码 ###      
-
-        ### 你的代码 ###
-        
-        # 如有必要，此行可删除
+        self.scoper = walls.max(axis = 0)
+        self.scopel = walls.min(axis = 0)
+        # print(self.scopel, self.scoper)
         self.path = None
         
         
@@ -42,7 +43,12 @@ class RRT:
 
         ### 你的代码 ###
         # 如有必要，此行可删除
+        print("finding path", current_position, next_food)
         self.path = self.build_tree(current_position, next_food)
+        self.pathPosition = 0
+        self.pathCnt = 0
+        print(self.path)
+        print([self.map.checkline(self.path[i].tolist(), self.path[i+1].tolist()) for i in range(len(self.path)-1)])
         
         
     def get_target(self, current_position, current_velocity):
@@ -60,9 +66,22 @@ class RRT:
         同时需要注意，仿真中的 pacman 并不能准确到达 path 中的节点。你可能需要考虑在什么情况下重新规划 path
         """
         target_pose = np.zeros_like(current_position)
-        ### 你的代码 ###
+        self.pathCnt += 1
+        print(len(self.path), self.pathPosition, self.pathCnt)
         
-        ### 你的代码 ###
+        if self.pathPosition >= len(self.path):
+            print("REGENERATING")
+            self.find_path(current_position, self.path[-1])
+            print("REGENER RESULT:", self.path)
+        if self.pathCnt > TRY_LIM or np.linalg.norm(current_position - self.path[self.pathPosition]) < WALK_THREHOLD:
+            self.pathPosition += 1
+            self.pathCnt = 0
+        if self.pathPosition >= len(self.path):
+            print("REGENERATING")
+            self.find_path(current_position, self.path[-1])
+            print("REGENER RESULT:", self.path)
+        print(current_position, len(self.path), self.pathPosition, self.pathCnt, self.path[self.pathPosition])
+        target_pose = self.path[self.pathPosition]
         return target_pose
         
     ### 以下是RRT中一些可能用到的函数框架，全部可以修改，当然你也可以自己实现 ###
@@ -73,13 +92,30 @@ class RRT:
         你可以调用find_nearest_point和connect_a_to_b两个函数
         另外self.map的checkoccupy和checkline也可能会需要，可以参考simuScene.py中的PlanningMap类查看它们的用法
         """
+        global STEP_DISTANCE
         path = []
         graph: List[TreeNode] = []
         graph.append(TreeNode(-1, start[0], start[1]))
-        ### 你的代码 ###
-        
-        
-        ### 你的代码 ###
+        while self.map.checkline(graph[self.find_nearest_point(goal, graph)[0]].pos.tolist(), goal.tolist())[0] == True:
+            # self.find_nearest_point(goal, graph)[1] > TARGET_THREHOLD:#
+            t = np.random.rand(2) * (self.scoper - self.scopel) + self.scopel
+            # if self.map.checkoccupy(t):
+                # continue
+            nearestId, _ = self.find_nearest_point(t, graph)
+            is_empty, newpoint = self.connect_a_to_b(graph[nearestId].pos, t)
+            if is_empty:
+                graph.append(TreeNode(nearestId, newpoint[0], newpoint[1]))
+                STEP_DISTANCE = FULL_STEP_DISTANCE
+            else:
+                STEP_DISTANCE /= REDUCE_STEP_DISTANCE
+                STEP_DISTANCE = max(STEP_DISTANCE, MIN_STEP_DISTANCE)
+                # print("add node", newpoint)
+        path.append(goal)
+        nearestId, _ = self.find_nearest_point(goal, graph)
+        while nearestId != -1:
+            path.append(graph[nearestId].pos)
+            nearestId = graph[nearestId].parent_idx
+        path.reverse()
         return path
 
     @staticmethod
@@ -94,9 +130,11 @@ class RRT:
         """
         nearest_idx = -1
         nearest_distance = 10000000.
-        ### 你的代码 ###
-
-        ### 你的代码 ###
+        for _ in range(len(graph)):
+            dist = np.linalg.norm(graph[_].pos - point)
+            if dist < nearest_distance:
+                nearest_distance = dist
+                nearest_idx = _
         return nearest_idx, nearest_distance
     
     def connect_a_to_b(self, point_a, point_b):
@@ -108,9 +146,9 @@ class RRT:
         is_empty: bool，True表示从A出发前进STEP_DISTANCE这段距离上没有障碍物
         newpoint: 从A点出发向B点方向前进STEP_DISTANCE距离后的新位置，如果is_empty为真，之后的代码需要把这个新位置添加到图中
         """
-        is_empty = False
-        newpoint = np.zeros(2)
-        ### 你的代码 ###
-
-        ### 你的代码 ###
+        len = np.linalg.norm(point_b - point_a)
+        newpoint = (point_b - point_a) / len * STEP_DISTANCE + point_a
+        is_empty = self.map.checkline(point_a.tolist(), newpoint.tolist())[0] == False
+        if self.map.checkoccupy(newpoint):
+            is_empty = False
         return is_empty, newpoint
