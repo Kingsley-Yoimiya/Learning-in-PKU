@@ -5,13 +5,13 @@ from simuScene import PlanningMap
 
 
 ### 定义一些你需要的变量和函数 ###
-STEP_DISTANCE = 0.9
+STEP_DISTANCE = 1.0
 REDUCE_STEP_DISTANCE = 2
 FULL_STEP_DISTANCE = STEP_DISTANCE
 MIN_STEP_DISTANCE = 0.4
-TARGET_THREHOLD = 0.5
+TARGET_THREHOLD = 1.5
 WALK_THREHOLD = 0.5
-TRY_LIM = 2
+TRY_LIM = 5
 ### 定义一些你需要的变量和函数 ###
 
 
@@ -94,30 +94,36 @@ class RRT:
         """
         global STEP_DISTANCE
         path = []
-        graph: List[TreeNode] = []
-        graph.append(TreeNode(-1, start[0], start[1]))
-        while self.map.checkline(graph[self.find_nearest_point(goal, graph)[0]].pos.tolist(), goal.tolist())[0] == True:
-            # self.find_nearest_point(goal, graph)[1] > TARGET_THREHOLD:#
+        graph1: List[TreeNode] = []
+        graph2: List[TreeNode] = []
+        graph1.append(TreeNode(-1, start[0], start[1]))
+        graph2.append(TreeNode(-1, goal[0], goal[1]))
+        def gener(id1, id2):
+            while graph1[id1].parent_idx != -1:
+                path.append(graph1[id1].pos)
+                id1 = graph1[id1].parent_idx
+            path.reverse()
+            while graph2[id2].parent_idx != -1:
+                id2 = graph2[id2].parent_idx
+                path.append(graph2[id2].pos)
+            path.append(goal)
+            return path
+        while True:
             t = np.random.rand(2) * (self.scoper - self.scopel) + self.scopel
-            # if self.map.checkoccupy(t):
-                # continue
-            nearestId, _ = self.find_nearest_point(t, graph)
-            is_empty, newpoint = self.connect_a_to_b(graph[nearestId].pos, t)
-            if is_empty:
-                graph.append(TreeNode(nearestId, newpoint[0], newpoint[1]))
-            if not is_empty or STEP_DISTANCE != MIN_STEP_DISTANCE:
-                STEP_DISTANCE /= REDUCE_STEP_DISTANCE
-                STEP_DISTANCE = max(STEP_DISTANCE, MIN_STEP_DISTANCE)
-            else:
-                STEP_DISTANCE = FULL_STEP_DISTANCE
-                # print("add node", newpoint)
-        path.append(goal)
-        nearestId, _ = self.find_nearest_point(goal, graph)
-        while nearestId != -1:
-            path.append(graph[nearestId].pos)
-            nearestId = graph[nearestId].parent_idx
-        path.reverse()
-        return path
+            def addNode(t, graph) :
+                nearestId, _ = self.find_nearest_point(t, graph)
+                is_empty, newpoint = self.connect_a_to_b(graph[nearestId].pos, t)
+                if is_empty:
+                    graph.append(TreeNode(nearestId, newpoint[0], newpoint[1]))
+                    return newpoint, nearestId
+                return None, -1
+            v1, id1 = addNode(t, graph1)
+            v2, id2 = addNode(t, graph2)
+            # print(v1, id1, v2, id2)
+            if id1 != -1 and id2 != -1:
+                if np.linalg.norm(v1 - v2) < TARGET_THREHOLD:
+                    return gener(id1, id2)
+            
 
     @staticmethod
     def find_nearest_point(point, graph):
