@@ -5,13 +5,13 @@ from simuScene import PlanningMap
 
 
 ### 定义一些你需要的变量和函数 ###
-STEP_DISTANCE = 1.0
+STEP_DISTANCE = 1.1
 REDUCE_STEP_DISTANCE = 2
 FULL_STEP_DISTANCE = STEP_DISTANCE
 MIN_STEP_DISTANCE = 0.4
 TARGET_THREHOLD = 1.5
 WALK_THREHOLD = 0.5
-TRY_LIM = 5
+TRY_LIM = 4
 ### 定义一些你需要的变量和函数 ###
 
 
