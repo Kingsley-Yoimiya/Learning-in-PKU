@@ -25,16 +25,16 @@ u64 trans(u64 x, int i) {
 mt19937_64 rnd(time(NULL));
 normal_distribution<> gen(0, 1);
 
-const int V = 1e6;
+const int V = 1e9;
 int val[N];
 
 int main() {
     freopen("1.in", "w", stdout);
-    n = 1e5, d = 1000, m = 1e5; //q = 50000;
-    cout << n << " " << d << " " << m << endl;
-    rep(_, 1, m) {
-        int i = rnd() % n + 1, j = rnd() % d + 1; double w = gen(rnd);
-        cout << i << " " << j << " " << w << endl;
+    n = 500000, d = 1000, m = 1e5; //q = 50000;
+    cout << n << endl;
+    rep(_, 1, n) {
+        int op = 0, x = rnd() % V, y = rnd() % V;
+        cout << op << " " << x << " " << y << endl;
     }
     return 0;
 }
