@@ -151,7 +151,7 @@ namespace VCX::Labs::GeometryProcessing {
                    atan2(input.Positions[y].x, input.Positions[y].y);
         });
         for(int i = 0; i < pot.size(); i++) {
-            output.TexCoords[pot[i]] = glm::vec2{ cos(2 * M_PI * i / pot.size()), sin(2 * M_PI * i / pot.size()) };
+            output.TexCoords[pot[i]] = glm::vec2{ cos(2 * M_PI * i / pot.size()) / 2 + 1, sin(2 * M_PI * i / pot.size()) / 2 + 1 };
         }
         // Solve equation via Gauss-Seidel Iterative Method.
         for (int k = 0; k < numIterations; ++k) {
