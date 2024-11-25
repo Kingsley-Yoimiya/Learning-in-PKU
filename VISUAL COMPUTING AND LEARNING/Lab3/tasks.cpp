@@ -63,7 +63,7 @@ namespace VCX::Labs::Rendering {
                     if (enableShadow) {
                         // your code here
                         auto hit = intersector.IntersectRay(Ray(pos, glm::normalize(l)));
-                        if (hit.IntersectState && hit.IntersectAlbedo.w < 0.2) {
+                        while (hit.IntersectState && hit.IntersectAlbedo.w < 0.2) {
                             hit = intersector.IntersectRay(Ray(hit.IntersectPosition, glm::normalize(l)));
                         }
                         if (hit.IntersectState) {
@@ -77,7 +77,7 @@ namespace VCX::Labs::Rendering {
                     if (enableShadow) {
                         // your code here
                         auto hit = intersector.IntersectRay(Ray(pos, glm::normalize(l)));
-                        if (hit.IntersectState && hit.IntersectAlbedo.w < 0.2) {
+                        while (hit.IntersectState && hit.IntersectAlbedo.w < 0.2) {
                             hit = intersector.IntersectRay(Ray(hit.IntersectPosition, glm::normalize(l)));
                         }
                         if (hit.IntersectState) {
@@ -89,7 +89,7 @@ namespace VCX::Labs::Rendering {
 
                 /******************* 2. Whitted-style ray tracing *****************/
                 // your code here
-                glm::vec3 h = glm::normalize(-ray.Direction + glm::normalize(l));
+                glm::vec3 h = glm::normalize(ray.Direction + glm::normalize(l));
                 result = kd * intersector.InternalScene->AmbientIntensity;
                 result += light.Intensity * attenuation * kd * std::max((float)0, glm::dot(n, glm::normalize(l)));
                 result += light.Intensity * attenuation * ks * std::pow(std::max((float)0, glm::dot(h, n)), shininess);
